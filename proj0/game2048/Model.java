@@ -5,7 +5,7 @@ import java.util.Observable;
 
 
 /** The state of a game of 2048.
- *  @author TODO: YOUR NAME HERE
+ *  @author MolotovGirl
  */
 public class Model extends Observable {
     /** Current contents of the board. */
@@ -33,8 +33,8 @@ public class Model extends Observable {
         gameOver = false;
     }
 
-    /** A new 2048 game where RAWVALUES contain the values of the tiles
-     * (0 if null). VALUES is indexed by (row, col) with (0, 0) corresponding
+    /** A new 2048 game where rawValues contain the values of the tiles
+     * (0 if null). rawValues is indexed by (row, col) with (0, 0) corresponding
      * to the bottom-left corner. Used for testing purposes. */
     public Model(int[][] rawValues, int score, int maxScore, boolean gameOver) {
         int size = rawValues.length;
@@ -94,7 +94,35 @@ public class Model extends Observable {
         setChanged();
     }
 
-    /** Tilt the board toward SIDE. Return true iff this changes the board.
+    private int[] nextCoordinates(Board b, int[][] merge,  int col, int row)
+    {
+        int newRow = row;
+        while (inBounds(b, newRow+1, col))
+        {
+            // Check whether still able to level up
+            if (b.tile(col, newRow+1) == null)
+            {
+                newRow++;
+                continue;
+            }
+
+            // Another tile at the top of current tile
+            // Check whether able to merge
+            if (b.tile(col, newRow+1).value() == b.tile(col, row).value() && merge[col][newRow+1] == 0)
+            {
+                // Able to merge
+                // Merge and break
+                newRow++;
+                merge[col][newRow] = 2*b.tile(col, row).value();
+            }
+            break;
+        }
+
+        // Now (col, newRow) is where the tile should go
+        return new int[]{col, newRow};
+    }
+
+    /** Tilt the board toward SIDE. Return true if this changes the board.
      *
      * 1. If two Tile objects are adjacent in the direction of motion and have
      *    the same value, they are merged into one Tile of twice the original
@@ -113,6 +141,47 @@ public class Model extends Observable {
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
+
+        if (side != Side.NORTH)
+        {
+            // Rotate the board
+            board.setViewingPerspective(side);
+        }
+
+        int[][] merge = new int[board.size()][board.size()];
+
+
+        // Scan from left to right
+        for (int i = 0; i < board.size(); i++) {
+            // Scan from top to bottom
+            for (int j = board.size() - 1; j >= 0; j--) {
+                if (board.tile(i, j) == null){
+                    continue;
+                }
+                int[] coordinates = nextCoordinates(board, merge, i, j);
+                if (j != coordinates[1])
+                {
+                    board.move(coordinates[0], coordinates[1], board.tile(i, j));
+                    changed = true;
+                }
+
+            }
+        }
+
+        if (side != Side.NORTH)
+        {
+            // Restore the board
+            board.setViewingPerspective(Side.NORTH);
+        }
+
+        // Compute the score
+        int score = 0;
+        for (int i = 0; i < board.size(); i++) {
+            for (int j = 0; j < board.size(); j++) {
+                score += merge[i][j];
+            }
+        }
+        this.score += score;
 
         checkGameOver();
         if (changed) {
@@ -137,7 +206,15 @@ public class Model extends Observable {
      *  Empty spaces are stored as null.
      * */
     public static boolean emptySpaceExists(Board b) {
-        // TODO: Fill in this function.
+        for (int i = 0; i < b.size(); i++)
+        {
+            for (int j = 0; j < b.size(); j++) {
+                if (b.tile(j, i) == null)
+                {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -147,10 +224,21 @@ public class Model extends Observable {
      * given a Tile object t, we get its value with t.value().
      */
     public static boolean maxTileExists(Board b) {
-        // TODO: Fill in this function.
+        for (int i = 0; i < b.size(); i++)
+        {
+            for (int j = 0; j < b.size(); j++) {
+                if ((b.tile(j, i) != null) && (b.tile(j, i).value() == MAX_PIECE))
+                {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
+    private static boolean inBounds(Board b, int row, int col){
+        return (row >=0) && (row < b.size()) && (col >= 0) && (col < b.size());
+    }
     /**
      * Returns true if there are any valid moves on the board.
      * There are two ways that there can be valid moves:
@@ -158,7 +246,40 @@ public class Model extends Observable {
      * 2. There are two adjacent tiles with the same value.
      */
     public static boolean atLeastOneMoveExists(Board b) {
-        // TODO: Fill in this function.
+        if (emptySpaceExists(b))
+        {
+            return true;
+        }
+
+        // Check if there is two adjacent tiles with the same value
+        for (int i = 0; i < b.size(); i++)
+        {
+            for (int j = 0; j < b.size(); j++) {
+                // For each tile, check the 4-way neighbors
+
+                // !!!Adjacent tiles indices need to be reconsidered!!!
+                for (int k = -1; k < 2; k++) {
+                    if (k == 0){
+                        for (int l = -1; l < 2; l+=2) {
+                            if ((inBounds(b, i+k, j+l)) && (b.tile(j+l, i+k) != null) && (b.tile(j, i).value() == (b.tile(j+l, i+k).value())))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        int l = 0;
+                        if ((inBounds(b, i+k, j+l)) && (b.tile(j+l, i+k) != null) && (b.tile(j, i).value() == (b.tile(j+l, i+k).value())))
+                        {
+                            return true;
+                        }
+                    }
+
+                }
+            }
+        }
+
         return false;
     }
 
