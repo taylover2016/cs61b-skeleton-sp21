@@ -19,6 +19,12 @@ public class Primes {
      * @return True iff. the integer is prime
      */
     public static boolean isPrime(int n) {
+        if (n < 0)
+        {
+            n = -n;
+        } else if (n == 0 || n == 1 || n == 2) {
+            return true;
+        }
         for (int i = 2; i < n; i++) {
             if (n % i == 0)
             {
