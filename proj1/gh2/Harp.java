@@ -6,7 +6,7 @@ import deque.Deque;
 import deque.LinkedListDeque;
 
 //Note: This file will not compile until you complete the Deque implementations
-public class GuitarString {
+public class Harp {
     /** Constants. Do not change. In case you're curious, the keyword final
      * means the values cannot be changed at runtime. We'll discuss this and
      * other topics in lecture on Friday. */
@@ -18,12 +18,12 @@ public class GuitarString {
     private Deque<Double> buffer;
 
     /* Create a guitar string of the given frequency.  */
-    public GuitarString(double frequency) {
+    public Harp(double frequency) {
         // TODO: Create a buffer with capacity = SR / frequency. You'll need to
         //       cast the result of this division operation into an int. For
         //       better accuracy, use the Math.round() function before casting.
         //       Your should initially fill your buffer array with zeros.
-        int capacity = (int) Math.round(SR/frequency);
+        int capacity = (int) Math.round(SR/frequency) * 2;
         //buffer = new deque.LinkedListDeque<>();
         buffer = new deque.ArrayDeque<>();
         for (int i = 0; i < capacity; i++) {
@@ -58,7 +58,7 @@ public class GuitarString {
         //       **Do not call StdAudio.play().**
         double oldFront = buffer.removeFirst();
         double newFront = buffer.get(0);
-        double newBack = DECAY * 0.5 * (oldFront+newFront);
+        double newBack = DECAY * -0.5 * (oldFront+newFront);
         buffer.addLast(newBack);
 
     }
@@ -69,4 +69,4 @@ public class GuitarString {
         return buffer.get(0);
     }
 }
-    // TODO: Remove all comments that say TODO when you're done.
+// TODO: Remove all comments that say TODO when you're done.

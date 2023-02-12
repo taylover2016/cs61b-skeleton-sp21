@@ -2,7 +2,7 @@ package deque;
 
 import java.util.Iterator;
 
-public class ArrayDeque<T> implements Iterable<T>{
+public class ArrayDeque<T> implements Deque<T>, Iterable<T>{
     // Array implementation
 
     private T[] array;
@@ -64,7 +64,7 @@ public class ArrayDeque<T> implements Iterable<T>{
         // Check if out of bounds
         if (idx_start == 0)
         {
-            this.resize(2 * this.size());
+            this.resize(2 * array.length);
         }
         idx_start--;
         array[idx_start] = item;
@@ -73,9 +73,9 @@ public class ArrayDeque<T> implements Iterable<T>{
     }
 
     public void addLast(T item){
-        if (idx_end == 0)
+        if (idx_end == array.length - 1)
         {
-            this.resize(2 * this.size());
+            this.resize(2 * array.length);
         }
 
         idx_end++;
@@ -90,7 +90,7 @@ public class ArrayDeque<T> implements Iterable<T>{
 
     private void resize(int newSize){
         T[] newArray = (T[]) new Object[newSize];
-        int newIdxStart = newArray.length / 2;
+        int newIdxStart = newArray.length / 4;
         int newIdxEnd = newIdxStart + this.size() - 1;
         if (this.size() > 0)
         {
@@ -187,7 +187,7 @@ public class ArrayDeque<T> implements Iterable<T>{
             return null;
         }
 
-        return array[index];
+        return array[idx_start+index];
     }
 
 }
